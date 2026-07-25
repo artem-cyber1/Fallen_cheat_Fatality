@@ -1,0 +1,218 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+if PlayerGui:FindFirstChild("FatalityMenu") then PlayerGui.FatalityMenu:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.Name = "FatalityMenu"
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 520, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 16, 18)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+
+local Sidebar = Instance.new("Frame", MainFrame)
+Sidebar.Size = UDim2.new(0, 140, 1, 0)
+Sidebar.BackgroundColor3 = Color3.fromRGB(10, 11, 12)
+Sidebar.BorderSizePixel = 0
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 8)
+
+local Logo = Instance.new("TextLabel", Sidebar)
+Logo.Size = UDim2.new(1, 0, 0, 45)
+Logo.Text = "FATALITY"
+Logo.TextColor3 = Color3.fromRGB(255, 0, 85)
+Logo.TextSize = 18
+Logo.Font = Enum.Font.GothamBold
+Logo.BackgroundTransparency = 1
+
+local Pages = Instance.new("Frame", MainFrame)
+Pages.Size = UDim2.new(1, -160, 1, -20)
+Pages.Position = UDim2.new(0, 150, 0, 10)
+Pages.BackgroundTransparency = 1
+
+local MovementPage = Instance.new("Frame", Pages)
+MovementPage.Size = UDim2.new(1, 0, 1, 0)
+MovementPage.BackgroundTransparency = 1
+
+local ESPPage = Instance.new("Frame", Pages)
+ESPPage.Size = UDim2.new(1, 0, 1, 0)
+ESPPage.BackgroundTransparency = 1
+ESPPage.Visible = false
+
+local MoveBtn = Instance.new("TextButton", Sidebar)
+MoveBtn.Size = UDim2.new(0.9, 0, 0, 35)
+MoveBtn.Position = UDim2.new(0.05, 0, 0, 55)
+MoveBtn.Text = "  Movement"
+MoveBtn.TextColor3 = Color3.new(1, 1, 1)
+MoveBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 27)
+MoveBtn.TextXAlignment = Enum.TextXAlignment.Left
+Instance.new("UICorner", MoveBtn).CornerRadius = UDim.new(0, 5)
+
+local ESPBtn = Instance.new("TextButton", Sidebar)
+ESPBtn.Size = UDim2.new(0.9, 0, 0, 35)
+ESPBtn.Position = UDim2.new(0.05, 0, 0, 95)
+ESPBtn.Text = "  Visuals / ESP"
+ESPBtn.TextColor3 = Color3.fromRGB(120, 120, 120)
+ESPBtn.BackgroundColor3 = Color3.fromRGB(15, 16, 18)
+ESPBtn.TextXAlignment = Enum.TextXAlignment.Left
+Instance.new("UICorner", ESPBtn).CornerRadius = UDim.new(0, 5)
+
+MoveBtn.MouseButton1Click:Connect(function()
+    MovementPage.Visible = true; ESPPage.Visible = false
+    MoveBtn.TextColor3 = Color3.new(1, 1, 1); ESPBtn.TextColor3 = Color3.fromRGB(120, 120, 120)
+end)
+
+ESPBtn.MouseButton1Click:Connect(function()
+    MovementPage.Visible = false; ESPPage.Visible = true
+    ESPBtn.TextColor3 = Color3.new(1, 1, 1); MoveBtn.TextColor3 = Color3.fromRGB(120, 120, 120)
+end)
+
+local ESP_Config = { BOX = false, NAME = false, HP = false, SKELETON = false, TextColor = Color3.fromRGB(255, 255, 255) }
+
+local function CreateToggle(parent, text, position, configKey)
+    local TglBtn = Instance.new("TextButton", parent)
+    TglBtn.Size = UDim2.new(0.45, 0, 0, 32)
+    TglBtn.Position = position
+    TglBtn.BackgroundColor3 = Color3.fromRGB(22, 23, 25)
+    TglBtn.Text = "  " .. text .. " [OFF]"
+    TglBtn.TextColor3 = Color3.fromRGB(200, 60, 60)
+    TglBtn.TextSize = 12
+    TglBtn.Font = Enum.Font.Gotham
+    TglBtn.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", TglBtn).CornerRadius = UDim.new(0, 5)
+
+    TglBtn.MouseButton1Click:Connect(function()
+        ESP_Config[configKey] = not ESP_Config[configKey]
+        if ESP_Config[configKey] then
+            TglBtn.Text = "  " .. text .. " [ON]"
+            TglBtn.TextColor3 = Color3.fromRGB(0, 255, 140)
+            TglBtn.BackgroundColor3 = Color3.fromRGB(26, 35, 30)
+        else
+            TglBtn.Text = "  " .. text .. " [OFF]"
+            TglBtn.TextColor3 = Color3.fromRGB(200, 60, 60)
+            TglBtn.BackgroundColor3 = Color3.fromRGB(22, 23, 25)
+        end
+    end)
+end
+
+local function CreateColorButton(parent, text, color, position)
+    local CBtn = Instance.new("TextButton", parent)
+    CBtn.Size = UDim2.new(0.28, 0, 0, 25)
+    CBtn.Position = position
+    CBtn.Text = text
+    CBtn.TextColor3 = color
+    CBtn.BackgroundColor3 = Color3.fromRGB(30, 31, 33)
+    Instance.new("UICorner", CBtn).CornerRadius = UDim.new(0, 4)
+    CBtn.MouseButton1Click:Connect(function() ESP_Config.TextColor = color end)
+end
+
+local function CreateSlider(parent, text, min, max, default, position, callback)
+    local Title = Instance.new("TextLabel", parent)
+    Title.Size = UDim2.new(0.95, 0, 0, 20)
+    Title.Position = position
+    Title.Text = text .. " : " .. default
+    Title.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Title.BackgroundTransparency = 1
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Font = Enum.Font.Gotham
+
+    local SliderBar = Instance.new("TextButton", parent)
+    SliderBar.Size = UDim2.new(0.95, 0, 0, 6)
+    SliderBar.Position = position + UDim2.new(0, 0, 0, 24)
+    SliderBar.BackgroundColor3 = Color3.fromRGB(35, 36, 39)
+    SliderBar.Text = ""
+    Instance.new("UICorner", SliderBar)
+
+    local Progress = Instance.new("Frame", SliderBar)
+    Progress.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    Progress.BackgroundColor3 = Color3.fromRGB(255, 0, 85)
+    Instance.new("UICorner", Progress)
+
+    local function update(input)
+        local pos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+        Progress.Size = UDim2.new(pos, 0, 1, 0)
+        local val = math.floor(min + (max - min) * pos)
+        Title.Text = text .. " : " .. val
+        callback(val)
+    end
+
+    local dragging = false
+    SliderBar.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true update(input) end end)
+    UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+    UIS.InputChanged:Connect(function(input) if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then update(input) end end)
+end
+
+CreateSlider(MovementPage, "WalkSpeed", 16, 250, 16, UDim2.new(0, 10, 0, 15), function(v) if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = v end end)
+CreateSlider(MovementPage, "JumpPower", 50, 300, 50, UDim2.new(0, 10, 0, 70), function(v) if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.JumpPower = v LocalPlayer.Character.Humanoid.UseJumpPower = true end end)
+
+CreateToggle(ESPPage, "BOX", UDim2.new(0, 10, 0, 15), "BOX")
+CreateToggle(ESPPage, "NAME", UDim2.new(0, 190, 0, 15), "NAME")
+CreateToggle(ESPPage, "HP", UDim2.new(0, 10, 0, 55), "HP")
+CreateToggle(ESPPage, "SKELETON", UDim2.new(0, 190, 0, 55), "SKELETON")
+
+local ColorTitle = Instance.new("TextLabel", ESPPage)
+ColorTitle.Size = UDim2.new(1, 0, 0, 20)
+ColorTitle.Position = UDim2.new(0, 10, 0, 105)
+ColorTitle.Text = "Text Color:"
+ColorTitle.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+ColorTitle.TextXAlignment = Enum.TextXAlignment.Left
+ColorTitle.BackgroundTransparency = 1
+
+CreateColorButton(ESPPage, "White", Color3.new(1,1,1), UDim2.new(0, 10, 0, 130))
+CreateColorButton(ESPPage, "Green", Color3.new(0,1,0), UDim2.new(0, 120, 0, 130))
+CreateColorButton(ESPPage, "Pink", Color3.new(1,0,0.5), UDim2.new(0, 230, 0, 130))
+
+-- ФУНКЦИЯ ЛИНИЙ СКЕЛЕТА
+local function CreateLine(p1, p2, folder)
+    local Line = Instance.new("LineHandleAdornment", folder)
+    Line.Length, Line.Thickness, Line.ZIndex, Line.AlwaysOnTop = 0, 2, 5, true
+    Line.Color3 = Color3.fromRGB(255, 0, 85)
+    
+    local c
+    c = RunService.RenderStepped:Connect(function()
+        if not p1 or not p2 or not p1.Parent or not p2.Parent or not Line.Parent then c:Disconnect() pcall(function() Line:Destroy() end) return end
+        if ESP_Config.SKELETON then
+            Line.Visible = true
+            Line.Length = (p1.Position - p2.Position).Magnitude
+            Line.CFrame = CFrame.lookAt(p1.Position, p2.Position)
+            Line.Adornee = p1
+        else Line.Visible = false end
+    end)
+end
+
+-- ГЕНЕРАТОР ОПТИМИЗИРОВАННОГО ESP
+local function ManageESP(player)
+    if player == LocalPlayer then return end
+    player.CharacterAdded:Connect(function(character)
+        local root = character:WaitForChild("HumanoidRootPart", 5)
+        local head = character:WaitForChild("Head", 5)
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        if not root or not head or not humanoid then return end
+
+        if root:FindFirstChild("ESP_Folder") then root.ESP_Folder:Destroy() end
+        local folder = Instance.new("Folder", root)
+        folder.Name = "ESP_Folder"
+
+        -- Объемный 3D Box (SelectionBox)
+        local Box = Instance.new("SelectionBox", folder)
+        Box.Adornee, Box.Color3, Box.LineStrokeMode, Box.Thickness, Box.AlwaysOnTop = character, Color3.fromRGB(255, 0, 85), Enum.LineStrokeMode.Perspective, 0.03, true
+
+        -- Настройки текста
+        local BGui = Instance.new("BillboardGui", folder)
+        BGui.Adornee, BGui.Size, BGui.AlwaysOnTop, BGui.ExtentsOffset = head, UDim2.new(0, 150, 0, 40), true, Vector3.new(0, 2.5, 0)
+        local InfoLabel = Instance.new("TextLabel", BGui)
+        InfoLabel.Size, InfoLabel.BackgroundTransparency, InfoLabel.TextSize, InfoLabel.Font, InfoLabel.TextStrokeTransparency = UDim2.new(1, 0, 1, 0), 1, 12, Enum.Font.GothamBold, 0.3
+
+        -- Умная сборка скелета
+        task.wait(0.5)
+        local pairsList = humanoid.RigType == Enum.HumanoidRigType.R15 and {
+            {"UpperTorso", "Head"}, {"UpperTorso", "LowerTorso"},
+            {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"LeftLowerArm", "LeftHand"},
